@@ -8,15 +8,21 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import com.example.bindservice.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
+    lateinit var binding:ActivityMainBinding
     var boundService:MyBoundService? = null
     private var bound = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.printTimestamp.setOnClickListener(this)
+        binding.stopService.setOnClickListener(this)
+        binding.timestampTextView.text = boundService?.getTimestamp()
     }
 
     val serviceConnection:ServiceConnection = object:ServiceConnection{
@@ -42,7 +48,21 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(view: View?) {
         when(view){
-            
+          binding.printTimestamp ->{
+              if(bound){
+                  binding.timestampTextView.text = boundService?.getTimestamp()
+              }
+          }
+
+          binding.stopService ->{
+              if(bound){
+                  unbindService(serviceConnection)
+                  bound = false
+              }
+
+              val intent = Intent(this,MyBoundService::class.java)
+              stopService(intent)
+          }
         }
     }
 

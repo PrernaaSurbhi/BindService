@@ -8,13 +8,14 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Chronometer
 
-
 /**
  * Created by PrernaSurbhi on 18/02/22.
  */
 class MyBoundService: Service() {
     private val iBinder:IBinder = MyBinder()
-    lateinit var mChronometer:Chronometer
+
+    var mChronometer:Chronometer? = null
+
 
     override fun onBind(intent: Intent?): IBinder? {
         Log.v(TAG, "in onBind")
@@ -26,11 +27,11 @@ class MyBoundService: Service() {
         return true
     }
     override fun onCreate() {
-        Log.v(TAG, "in onCreate")
-        mChronometer=  Chronometer(this).apply {
-            base = SystemClock.elapsedRealtime()
-            start()
-        }
+        mChronometer = Chronometer(this)
+        mChronometer?.base = SystemClock.elapsedRealtime()
+        mChronometer?.start()
+        getTimestamp()
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -40,7 +41,7 @@ class MyBoundService: Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.v(TAG, "in onDestroy");
-        mChronometer.stop();
+        mChronometer?.stop();
     }
 
     class MyBinder : Binder() {
@@ -50,17 +51,22 @@ class MyBoundService: Service() {
 
 
     fun getTimestamp(): String? {
-        val elapsedMillis = (SystemClock.elapsedRealtime()
-                - mChronometer.base)
-        val hours = (elapsedMillis / 3600000).toInt()
-        val minutes = (elapsedMillis - hours * 3600000).toInt() / 60000
-        val seconds = (elapsedMillis - hours * 3600000 - minutes * 60000).toInt() / 1000
-        val millis = (elapsedMillis - hours * 3600000 - minutes * 60000 - seconds * 1000).toInt()
-        return "$hours:$minutes:$seconds:$millis" ?: null
-    }
+        var time:String? = null
+        val elapsedMillis = mChronometer?.let{SystemClock.elapsedRealtime() - it.base}
+        elapsedMillis?.let{
+            val hours = (elapsedMillis?.div(3600000))?.toInt()
+            val timeval  = it.minus(hours * 3600000)
+            val minutes = (timeval).toInt() / 60000
+            val seconds = (timeval - minutes * 60000).toInt() / 1000
+            val millis = (timeval - minutes * 60000 - seconds * 1000).toInt()
+             time= "$hours:$minutes:$seconds:$millis"
+        }
 
+        return time
+    }
 
     companion object{
         const val TAG ="MyBoundService"
     }
+
 }
