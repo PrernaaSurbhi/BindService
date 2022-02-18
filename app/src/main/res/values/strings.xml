@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BindService</string>
+    <string name="print_time">Print Time</string>
+    <string name="stop_service">Stop Service</string>
 </resources>
